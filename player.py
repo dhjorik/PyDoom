@@ -45,9 +45,10 @@ class Player:
         return (x, y) not in self.game.map.world_map
 
     def check_wall_collision(self, dx, dy):
-        if self.check_wall(int(self.x + dx), int(self.y)):
+        player_scale = PLAYER_SIZE_SCALE / self.game.delta_time
+        if self.check_wall(int(self.x + dx * player_scale), int(self.y)):
             self.x += dx
-        if self.check_wall(int(self.x), int(self.y + dy)):
+        if self.check_wall(int(self.x), int(self.y + dy * player_scale)):
             self.y += dy
 
     def draw(self):
@@ -56,13 +57,22 @@ class Player:
                       self.y * MAP_stepY + WIDTH * math.sin(self.angle)), 2)
 
         pg.draw.circle(self.game.screen, 'blue', (int(self.x) * MAP_stepX, int(self.y) * MAP_stepY), 5)
-        pg.draw.circle(self.game.screen, 'blue', (int(self.x+1) * MAP_stepX, int(self.y) * MAP_stepY), 5)
-        pg.draw.circle(self.game.screen, 'blue', (int(self.x) * MAP_stepX, int(self.y+1) * MAP_stepY), 5)
-        pg.draw.circle(self.game.screen, 'blue', (int(self.x+1) * MAP_stepX, int(self.y+1) * MAP_stepY), 5)
+        pg.draw.circle(self.game.screen, 'blue', (int(self.x + 1) * MAP_stepX, int(self.y) * MAP_stepY), 5)
+        pg.draw.circle(self.game.screen, 'blue', (int(self.x) * MAP_stepX, int(self.y + 1) * MAP_stepY), 5)
+        pg.draw.circle(self.game.screen, 'blue', (int(self.x + 1) * MAP_stepX, int(self.y + 1) * MAP_stepY), 5)
         pg.draw.circle(self.game.screen, 'green', (self.x * MAP_stepX, self.y * MAP_stepY), 15)
+
+    def mouse_control(self):
+        mx, my = pg.mouse.get_pos()
+        if mx < MOUSE_BORDER_LEFT or mx > MOUSE_BORDER_RIGHT:
+            pg.mouse.set_pos([HALF_WIDTH, HALF_HEIGHT])
+        self.rel = pg.mouse.get_rel()[0]
+        self.rel = max(-MOUSE_MAX_REL, min(MOUSE_MAX_REL, self.rel))
+        self.angle += self.rel * MOUSE_SENSITIVITY * self.game.delta_time
 
     def update(self):
         self.move()
+        self.mouse_control()
 
     @property
     def pos(self):
